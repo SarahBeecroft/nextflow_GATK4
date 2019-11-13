@@ -76,7 +76,8 @@ process 'IndexBAM' {
     tag "$read_id_bam"
 
     input:
-        tuple path(read_id_bam), path(_metrics)
+        // tuple path(read_id_bam), path(_metrics)
+        path(read_id_bam)
 
     output:
         tuple path(read_id_bam), file("${read_id_bam}.bai")
@@ -115,20 +116,19 @@ process 'ApplyBQSR' {
 
     input:
         tuple path(ref_dir), ref_filename
-        path ks_mills
-        // path ks_omni
-        tuple path(read_id_bam), path(_metrics)
+        tuple path(read_id_bam), path(read_id_bai)
+        path bqsr_recal
 
     output:
-        file("${read_id_bam.baseName}.recal")
+        file("${read_id_bam.baseName}.BQSR.bam")
 
     script:
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
     """
-    gatk --java-options "-Xmx$JAVA_MEM -Djava.io.tmpdir=/SCRATCH/tmp" ApplyBQSR \
+    gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" ApplyBQSR \
     -R $ref_dir/$ref_filename \
     -I $read_id_bam \
-    -bqsr $input.recal \
-    -O $output
+    -bqsr $bqsr_recal \
+    -O ${read_id_bam.baseName}.BQSR.bam
     """
 }
