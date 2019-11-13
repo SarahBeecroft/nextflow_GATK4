@@ -1,0 +1,8 @@
+# Ignore nextflow temporary and log files
+.nextflow*
+work/
+
+# Ignore input and output results
+GATK4_WES/
+data/
+test_data/
