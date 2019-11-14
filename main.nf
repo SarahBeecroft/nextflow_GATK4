@@ -46,4 +46,9 @@ workflow {
     HapCaller(input_ref, ApplyBQSR.out)
     CombineGVCFs(input_ref, HapCaller.out.collect())
     GenotypeGVCFs(input_ref, CombineGVCFs.out)
+    //Variant_recal_SNP(input_ref, input_ks_mills, GenotypeGVCFs.out)
+    // Variant_recal_indel(input_ref, GenotypeGVCFs.out, input_ks_mills)
+    // Apply_VQSR_snp(input_ref, GenotypeGVCFs.out, Variant_recal_SNP.out)
+    // Apply_VQSR_indel()
+    GQ_filter(input_ref, GenotypeGVCFs.out)
 }
