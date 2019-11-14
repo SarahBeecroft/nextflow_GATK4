@@ -104,7 +104,7 @@ process 'GenBQSR' {
         tuple path(read_id_bam), path(read_id_bai)
 
     output:
-        file("${read_id_bam.baseName}.recal")
+        tuple path(read_id_bam), path(read_id_bai), file("${read_id_bam.baseName}.recal")
 
     script:
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
@@ -123,8 +123,7 @@ process 'ApplyBQSR' {
 
     input:
         tuple path(ref_dir), ref_filename
-        tuple path(read_id_bam), path(read_id_bai)
-        path bqsr_recal
+        tuple path(read_id_bam), path(read_id_bai), path(bqsr_recal)
 
     output:
         tuple path("${read_id_bam.baseName}.BQSR.bam"), path(read_id_bai)
@@ -159,5 +158,27 @@ process 'HapCaller' {
         -I $read_id_bam \
         -O ${read_id_bam.baseName}.hapCall \
         -ERC GVCF
+    """
+}
+
+process 'CombineGVCFs' {
+    label 'GATK'
+
+    input:
+        tuple path(ref_dir), ref_filename
+        path gatheredGVCFs
+
+    output:
+        file("MergedGVCF.g.vcf.gz")
+
+    script:
+    java_mem = "-Xmx" + task.memory.toGiga() + "G"
+    // gatk needs '--variant ' before each filename
+    variants = gatheredGVCFs.collect({ "--variant " + it })
+    """
+    gatk --java-options $java_mem CombineGVCFs \
+        -R $ref_dir/$ref_filename \
+        $variants \
+        -O MergedGVCF.g.vcf.gz
     """
 }

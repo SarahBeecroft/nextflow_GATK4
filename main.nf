@@ -8,7 +8,7 @@ params.ref_dir = "$baseDir/data/"
 params.ref_name = "hg19_all_chromosomes.sorted.fa"
 // params.readGroup_info = "@RG\\tID:000000000-BPC6F.1\\tPL:illumina\\tPU:None\\tLB:None\\tSM:103"
 // params.reads = "$baseDir/test_data/test-datasets/testdata/1_S103_L001_R{1,2}_001.fastq.gz"
-params.bam = "$baseDir/data/D09-573_S1.bam"
+params.bam = "$baseDir/data/*.bam"
 params.bundle_dir = "$baseDir/data/hg19/"
 params.mills = "Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
 //params.omni = "$baseDir/data/hg19/1000G_omni2.5.hg19.sites.vcf.gz"
@@ -42,6 +42,7 @@ workflow {
     // IndexBAM(MarkDuplicates.out)
     IndexBAM(bam_ch)
     GenBQSR(input_ref, input_ks_mills, IndexBAM.out)
-    ApplyBQSR(input_ref, IndexBAM.out, GenBQSR.out)
+    ApplyBQSR(input_ref, GenBQSR.out)
     HapCaller(input_ref, ApplyBQSR.out)
+    CombineGVCFs(input_ref, HapCaller.out.collect())
 }
