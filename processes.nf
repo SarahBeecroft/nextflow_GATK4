@@ -1,5 +1,6 @@
 process 'Alignment_BWA' {
     tag "$read_id"
+    label 'BWA'
 
     input:
         tuple path(ref_dir), ref_filename
@@ -17,6 +18,7 @@ process 'Alignment_BWA' {
 
 process 'Alignment_Samtools' {
     tag "$read_id_bwa"
+    label 'Samtools'
 
     input:
         path read_id_bwa
@@ -32,6 +34,7 @@ process 'Alignment_Samtools' {
 
 process 'MarkDuplicates' {
     tag "$read_id_bam"
+    label 'Picard'
 
     input:
         path read_id_bam
@@ -53,6 +56,7 @@ process 'MarkDuplicates' {
 
 process 'BamOrder' {
     tag "$read_id_bam"
+    label 'Picard'
 
     input:
         tuple path(ref_dir), ref_filename
@@ -74,6 +78,7 @@ process 'BamOrder' {
 
 process 'IndexBAM' {
     tag "$read_id_bam"
+    label 'Samtools'
 
     input:
         // tuple path(read_id_bam), path(_metrics)
@@ -90,6 +95,7 @@ process 'IndexBAM' {
 
 process 'GenBQSR' {
     tag "$read_id_bam"
+    label 'GATK'
 
     input:
         tuple path(ref_dir), ref_filename
@@ -104,15 +110,16 @@ process 'GenBQSR' {
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
     """
     gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" BaseRecalibrator \
-    -R $ref_dir/$ref_filename \
-    -I $read_id_bam \
-    --known-sites $mills_dir/$ks_mills \
-    -O ${read_id_bam.baseName}.recal
+        -R $ref_dir/$ref_filename \
+        -I $read_id_bam \
+        --known-sites $mills_dir/$ks_mills \
+        -O ${read_id_bam.baseName}.recal
     """
 }
 
 process 'ApplyBQSR' {
     tag "$read_id_bam"
+    label 'GATK'
 
     input:
         tuple path(ref_dir), ref_filename
@@ -126,15 +133,16 @@ process 'ApplyBQSR' {
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
     """
     gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" ApplyBQSR \
-    -R $ref_dir/$ref_filename \
-    -I $read_id_bam \
-    -bqsr $bqsr_recal \
-    -O ${read_id_bam.baseName}.BQSR.bam
+        -R $ref_dir/$ref_filename \
+        -I $read_id_bam \
+        -bqsr $bqsr_recal \
+        -O ${read_id_bam.baseName}.BQSR.bam
     """
 }
 
 process 'HapCaller' {
     tag "$read_id_bam"
+    label 'GATK'
 
     input:
         tuple path(ref_dir), ref_filename
@@ -147,9 +155,9 @@ process 'HapCaller' {
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
     """
     gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" HaplotypeCaller \
-   -R $ref_dir/$ref_filename \
-   -I $read_id_bam \
-   -O ${read_id_bam.baseName}.hapCall \
-   -ERC GVCF
+        -R $ref_dir/$ref_filename \
+        -I $read_id_bam \
+        -O ${read_id_bam.baseName}.hapCall \
+        -ERC GVCF
     """
 }
