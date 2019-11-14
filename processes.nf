@@ -174,7 +174,7 @@ process 'CombineGVCFs' {
     script:
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
     // gatk needs '--variant ' before each filename
-    variants = gatheredGVCFs.collect({ "--variant " + it })
+    variants = gatheredGVCFs.collect({ "--variant " + it }).join(' ')
     """
     gatk --java-options $java_mem CombineGVCFs \
         -R $ref_dir/$ref_filename \
