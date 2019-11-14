@@ -43,4 +43,5 @@ workflow {
     IndexBAM(bam_ch)
     GenBQSR(input_ref, input_ks_mills, IndexBAM.out)
     ApplyBQSR(input_ref, IndexBAM.out, GenBQSR.out)
+    HapCaller(input_ref, ApplyBQSR.out)
 }

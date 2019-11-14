@@ -120,7 +120,7 @@ process 'ApplyBQSR' {
         path bqsr_recal
 
     output:
-        file("${read_id_bam.baseName}.BQSR.bam")
+        tuple path("${read_id_bam.baseName}.BQSR.bam"), path(read_id_bai)
 
     script:
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
@@ -130,5 +130,26 @@ process 'ApplyBQSR' {
     -I $read_id_bam \
     -bqsr $bqsr_recal \
     -O ${read_id_bam.baseName}.BQSR.bam
+    """
+}
+
+process 'HapCaller' {
+    tag "$read_id_bam"
+
+    input:
+        tuple path(ref_dir), ref_filename
+        tuple path(read_id_bam), path(read_id_bai)
+
+    output:
+        file("${read_id_bam.baseName}.hapCall")
+
+    script:
+    java_mem = "-Xmx" + task.memory.toGiga() + "G"
+    """
+    gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" HaplotypeCaller \
+   -R $ref_dir/$ref_filename \
+   -I $read_id_bam \
+   -O ${read_id_bam.baseName}.hapCall \
+   -ERC GVCF
     """
 }
