@@ -169,7 +169,7 @@ process 'CombineGVCFs' {
         path gatheredGVCFs
 
     output:
-        file("MergedGVCF.g.vcf.gz")
+        file("MergedGVCF.g.vcf")
 
     script:
     java_mem = "-Xmx" + task.memory.toGiga() + "G"
@@ -179,6 +179,29 @@ process 'CombineGVCFs' {
     gatk --java-options $java_mem CombineGVCFs \
         -R $ref_dir/$ref_filename \
         $variants \
-        -O MergedGVCF.g.vcf.gz
+        -O MergedGVCF.g.vcf
     """
 }
+
+process 'GenotypeGVCFs' {
+    label 'GATK'
+
+    input:
+        tuple path(ref_dir), ref_filename
+        path(merged_gvcf)
+
+    output:
+        file("jointGenotyped.raw.g.vcf")
+
+    script:
+    java_mem = "-Xmx" + task.memory.toGiga() + "G"
+
+    """
+    gatk --java-options "$java_mem -Djava.io.tmpdir=/tmp" \
+        GenotypeGVCFs \
+        -R $ref_dir/$ref_filename \
+        -V $merged_gvcf \
+        -O jointGenotyped.raw.g.vcf
+    """
+}
+

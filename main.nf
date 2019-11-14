@@ -45,4 +45,5 @@ workflow {
     ApplyBQSR(input_ref, GenBQSR.out)
     HapCaller(input_ref, ApplyBQSR.out)
     CombineGVCFs(input_ref, HapCaller.out.collect())
+    GenotypeGVCFs(input_ref, CombineGVCFs.out)
 }
